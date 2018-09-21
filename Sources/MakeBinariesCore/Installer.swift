@@ -43,7 +43,7 @@ public class Installer {
 		let data = try library.read()
 		let text = data.base64EncodedString()
 		
-		let libraryName = config.name ?? library.name
+		let libraryName = config.name ?? library.parent!.name
 		
 		let upload = Uploadable(libraryVersion: version.description,
 														name: libraryName,
