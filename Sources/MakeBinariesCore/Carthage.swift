@@ -18,15 +18,20 @@ public class Carthage {
 		self.config = configuration
 	}
 	
-	public func build() throws {
-		log("***".blue, "Build project", "\(path.name)".bold)
-		var command: [String] = ["carthage", "build", "--no-skip-current"]
+	func buildDependencies() throws {
+		guard Folder.current.containsFile(named: "Cartfile") else {
+			log("***".lightBlack, "\(path.name)".bold.lightBlack, "does not contain carthage depedencies".lightBlack)
+			return
+		}
+		
+		log("***".blue, "Build project", "\(path.name)".bold, "depedencies")
+		var command: [String] = ["carthage", "update"]
 		if config.isDebug {
 			command.append("--configuration")
 			command.append("Debug")
 		}
-    var failed = false
-    var logs: String?
+		var failed = false
+		var logs: String?
 		_ = Executor.execute(currentDirectory: path.path, arguments: command) { data in
 			guard var line = String(data: data, encoding: String.Encoding.utf8) else {
 				log("***".red, "Error decoding data:")
@@ -38,26 +43,73 @@ public class Carthage {
 			guard line.count > 0 else {
 				return
 			}
-      
-      let filtered = line.replacingOccurrences(of: "***", with: "").trimmingCharacters(in: .whitespaces)
-      
-      if filtered.hasPrefix("Build Failed") || filtered.hasPrefix("Task failed") {
-        failed = true
-      }
-      if filtered.hasPrefix("xcodebuild output can be found in") {
-        logs = filtered.replacingOccurrences(of: "xcodebuild output can be found in", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
-      }
+			
+			let filtered = line.replacingOccurrences(of: "***", with: "").trimmingCharacters(in: .whitespaces)
+			
+			if filtered.hasPrefix("Build Failed") || filtered.hasPrefix("Task failed") {
+				failed = true
+			}
+			if filtered.hasPrefix("xcodebuild output can be found in") {
+				logs = filtered.replacingOccurrences(of: "xcodebuild output can be found in", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+			}
 			for part in line.split(separator: "\n") {
 				log("[", part.trimmingCharacters(in: .whitespacesAndNewlines).lightBlack, "]")
 			}
 		}
-    if failed {
-      if let logs = logs {
-        log("... Log files = \(logs)".lightBlack)
-        Executor.execute(arguments: "/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl", logs)
-      }
-      throw "Failed to build project"
-    }
+		if failed {
+			if let logs = logs {
+				log("... Log files = \(logs)".lightBlack)
+				Executor.execute(arguments: "/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl", logs)
+			}
+			throw "Failed to build project"
+		}
+	}
+	
+	func buildCurrent() throws {
+		log("***".blue, "Build project", "\(path.name)".bold)
+		var command: [String] = ["carthage", "build", "--no-skip-current"]
+		if config.isDebug {
+			command.append("--configuration")
+			command.append("Debug")
+		}
+		var failed = false
+		var logs: String?
+		_ = Executor.execute(currentDirectory: path.path, arguments: command) { data in
+			guard var line = String(data: data, encoding: String.Encoding.utf8) else {
+				log("***".red, "Error decoding data:")
+				log("\t\(data)".magenta)
+				return
+			}
+			
+			line = line.trimmingCharacters(in: .whitespacesAndNewlines)
+			guard line.count > 0 else {
+				return
+			}
+			
+			let filtered = line.replacingOccurrences(of: "***", with: "").trimmingCharacters(in: .whitespaces)
+			
+			if filtered.hasPrefix("Build Failed") || filtered.hasPrefix("Task failed") {
+				failed = true
+			}
+			if filtered.hasPrefix("xcodebuild output can be found in") {
+				logs = filtered.replacingOccurrences(of: "xcodebuild output can be found in", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+			}
+			for part in line.split(separator: "\n") {
+				log("[", part.trimmingCharacters(in: .whitespacesAndNewlines).lightBlack, "]")
+			}
+		}
+		if failed {
+			if let logs = logs {
+				log("... Log files = \(logs)".lightBlack)
+				Executor.execute(arguments: "/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl", logs)
+			}
+			throw "Failed to build project"
+		}
+	}
+	
+	public func build() throws {
+		try buildDependencies()
+		try buildCurrent()
 	}
 	
 	func listFrameworks() throws -> [String] {

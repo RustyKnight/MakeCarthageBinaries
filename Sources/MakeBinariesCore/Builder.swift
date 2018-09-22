@@ -58,20 +58,20 @@ public class Builder {
 			throw "Failed to generate binary archives for \(path.name)"
 		}
 		
-		for archive in try frameworkZipFiles() {
-			guard !archive.name.contains("Xcode") else {
-				continue
-			}
-			let name = archive.name
-			// Split the name apart
-			var nameParts = name.split(separator: ".").map({String($0)})
-			// Inject the xcode version
-			nameParts.insert(config.xcode.stamp, at: 1)
-			// Put the name back together
-			let newName = nameParts.joined(separator: ".")
-			// Append it to the parent path
-			try archive.rename(to: newName)
-		}
+//		for archive in try frameworkZipFiles() {
+//			guard !archive.name.contains("Xcode") else {
+//				continue
+//			}
+//			let name = archive.name
+//			// Split the name apart
+//			var nameParts = name.split(separator: ".").map({String($0)})
+//			// Inject the xcode version
+//			nameParts.insert(config.xcode.stamp, at: 1)
+//			// Put the name back together
+//			let newName = nameParts.joined(separator: ".")
+//			// Append it to the parent path
+//			try archive.rename(to: newName)
+//		}
 
 		timer.isRunning = false
 		log("***".green, "Took", "\(durationFormatter.string(from: timer.duration)!)".bold, "to build/archive", "\(path.name)".bold)

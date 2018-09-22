@@ -23,6 +23,8 @@ public final class CommandLineTool {
 			archives = try buildAll(configuration: config)
 		}
 		
+		Thread.sleep(forTimeInterval: 1.0)
+		
 		install(archives, configuration: config)
 		
 		timer.isRunning = false

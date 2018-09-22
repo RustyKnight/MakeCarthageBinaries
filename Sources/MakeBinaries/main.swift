@@ -1,4 +1,7 @@
 import MakeBinariesCore
+import Foundation
+
+setenv("CFNETWORK_DIAGNOSTICS", "3", 1);
 
 let tool = CommandLineTool()
 
