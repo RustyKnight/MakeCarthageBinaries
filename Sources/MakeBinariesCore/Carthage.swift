@@ -80,9 +80,9 @@ public class Carthage {
 		
 		var arguments = ["carthage", "archive"]
 		
-		let names = try listFrameworks()
-		log("... including \(names.joined(separator: ", "))".lightBlack)
-		arguments.append(contentsOf: names)
+//		let names = try listFrameworks()
+//		log("... including \(names.joined(separator: ", "))".lightBlack)
+//		arguments.append(contentsOf: names)
 
 		_ = Executor.execute(currentDirectory: path.path, arguments: arguments) { data in
 			guard var line = String(data: data, encoding: String.Encoding.utf8) else {

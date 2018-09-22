@@ -40,36 +40,52 @@ public class Installer {
 	}
 	
 	func uploadTo(server: String) throws {
-		let data = try library.read()
-		let text = data.base64EncodedString()
+//		let data = try library.read()
+//		let text = data.base64EncodedString()
 		
-		let libraryName = config.name ?? library.parent!.name
-		
-		let upload = Uploadable(libraryVersion: version.description,
-														name: libraryName,
-														xcodeVersion: config.xcode.version,
-														xcodeBuild: config.xcode.build,
-														data: text)
+		let timer = Timer()
+		timer.isRunning = true
 
-		let encoder = JSONEncoder()
-		let jsonData = try encoder.encode(upload)
-		guard let jsonText = String(data: jsonData, encoding: .utf8) else {
-			throw "Failed to encode request"
-		}
+		let data = try library.read()
+
+		let libraryName = config.name ?? library.parent!.name
 		
 		guard let url = URL(string: server) else {
 			throw "Invalid URL"
 		}
 		var request = URLRequest(url: url)
-		request.setValue("application/zip", forHTTPHeaderField: "Content-Type")
 		request.httpMethod = "POST"
-		request.httpBody = jsonData
+		let param = [
+			"name": libraryName,
+			"version": version.description,
+			"xcodeVersion": config.xcode.version,
+			"xcodeBuild": config.xcode.build
+		]
+		
+		let boundary = "Boundary-\(UUID().uuidString)"
+		request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+		let body = try createBody(parameters: param, boundary: boundary, data: data)
+		request.httpBody = body
+
+//		let encoder = JSONEncoder()
+//		let jsonData = try encoder.encode(upload)
+//		guard let jsonText = String(data: jsonData, encoding: .utf8) else {
+//			throw "Failed to encode request"
+//		}
+//
+//		guard let url = URL(string: server) else {
+//			throw "Invalid URL"
+//		}
+//		var request = URLRequest(url: url)
+//		request.httpMethod = "POST"
+//		request.httpBody = jsonData
+//
+//
+//		let timer = Timer()
+//		timer.isRunning = true
 		
 		let semaphore = DispatchSemaphore(value: 0)
 		var failed = true
-		
-		let timer = Timer()
-		timer.isRunning = true
 		let task = URLSession.shared.dataTask(with: request) { data, response, error in
 			defer {
 				semaphore.signal()
@@ -92,12 +108,49 @@ public class Installer {
 		task.resume()
 		log("***".green, "Uploading", "\(self.library.name)".bold, "...")
 		semaphore.wait()
-		
+
 		timer.isRunning = false
 		guard !failed else {
 			return
 		}
 		log("***".green, "Took", "\(durationFormatter.string(from: timer.duration)!)".bold, "to upload", "\(self.library.name)".bold)
+	}
+	
+	func createBody(parameters: [String: String], boundary: String, data: Data) throws -> Data {
+		var body = Data()
+		let prefix = "--\(boundary)\r\n"
+		guard let prefixData = prefix.data(using: .utf8) else {
+			throw "Failed to encode multi-part form boundary prefix"
+		}
+		for (key, value) in parameters {
+			body.append(prefixData)
+			
+			guard let keyData = "Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n".data(using: .utf8) else {
+				throw "Failed to encode multi-part form key \(key)"
+			}
+			guard let valueData = "\(value)\r\n".data(using: .utf8) else {
+				throw "Failed to encode multi-part form value \(value)"
+			}
+
+			body.append(keyData)
+			body.append(valueData)
+		}
+		
+		body.append(prefixData)
+		guard let fileNameData = "Content-Disposition: form-data; name=\"binary\"; filename=\"binary.zip\"\r\n".data(using: .utf8) else {
+			throw "Failed to encode multi-part file form-data name"
+		}
+		guard let contentTypeData = "Content-Type: application/zip\r\n\r\n".data(using: .utf8)  else {
+			throw "Failed to encode multi-part file form-data content ty[e"
+		}
+		body.append(fileNameData)
+		body.append(contentTypeData)
+
+		body.append(data)
+		body.append("\r\n".data(using: .utf8)!)
+		body.append("--\(boundary)--".data(using: .utf8)!)
+
+		return body
 	}
 	
 	func usingFileSystem() throws {
@@ -153,10 +206,10 @@ public class Installer {
 	}
 }
 
-struct Uploadable: Codable {
-	var libraryVersion: String
-	var name: String
-	var xcodeVersion: String
-	var xcodeBuild: String
-	var data: String
-}
+//struct Uploadable: Codable {
+//	var libraryVersion: String
+//	var name: String
+//	var xcodeVersion: String
+//	var xcodeBuild: String
+//	var data: String
+//}
