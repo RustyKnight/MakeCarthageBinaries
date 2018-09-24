@@ -11,6 +11,7 @@ public final class CommandLineTool {
 	public func run() throws {
 		let config = try Configuration.build(from: arguments)
     
+    log("")
     log("***".blue, "\(config.xcode.stamp)")
 		
 		let timer = Timer()
@@ -25,9 +26,10 @@ public final class CommandLineTool {
 		
 		Thread.sleep(forTimeInterval: 1.0)
 		
-		install(archives, configuration: config)
+		try install(archives, configuration: config)
 		
 		timer.isRunning = false
+    log("")
 		log("***".blue, "Took", "\(durationFormatter.string(from: timer.duration)!)".bold, "to build and install binraries")
 	}
 	
@@ -45,13 +47,7 @@ public final class CommandLineTool {
 		let current = Folder.current
 		var archives: [File] = []
 		for folder in current.subfolders {
-			do {
-//				log("***".blue, "Build \(folder.name)")
-				archives.append(try build(path: folder, configuration: configuration))
-			} catch let error {
-				log("***".red, "Failed to build project \(folder.name)")
-				log("***".red, "\(error)")
-			}
+      archives.append(try build(path: folder, configuration: configuration))
 		}
 		return archives
 	}
@@ -62,7 +58,7 @@ public final class CommandLineTool {
 		return try builder.build()
 	}
 	
-	func install(_ archives: [File], configuration: Configuration) {
+	func install(_ archives: [File], configuration: Configuration) throws {
 		for archive in archives {
 			var releaseVersion: SemanticVersion?
 			if let text = configuration.overrideVersion {
@@ -75,14 +71,11 @@ public final class CommandLineTool {
 				log("***".red, "\(archive.parent!.name)".green, "does not contain any version tags!")
 				continue
 			}
-			do {
-				try Installer.install(library: archive,
-															name: configuration.name ?? archive.parent!.name,
-															version: version,
-															configuration: configuration)
-			} catch let error {
-				log("***".red, "Could not install", archive.name.green, ": \(error)")
-			}
+      log("*** Using tagged version".lightBlack, "\(version)".bold.lightBlack)
+      try Installer.install(library: archive,
+                            name: configuration.name ?? archive.parent!.name,
+                            version: version,
+                            configuration: configuration)
 		}
 	}
 	

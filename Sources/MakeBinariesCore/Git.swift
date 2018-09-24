@@ -31,9 +31,10 @@ public class Git {
 			}
 			for part in line.split(separator: "\n") {
 				guard let version = SemanticVersion.parse(from: String(part)) else {
-					//log("***".yellow, "\(part) is not a Semantic Version".lightBlack)
+          log("***".yellow, "\(part) is not a Semantic Version".lightBlack)
 					continue
 				}
+        log(">>> Found Tag \(version)".lightBlack)
 				versions.append(version)
 			}
 		}
