@@ -17,6 +17,7 @@ public class Git {
 	
 	public func versions() -> [SemanticVersion] {
 		var versions: [SemanticVersion] = []
+//		git describe --tags
 		let command: [String] = ["git", "tag"]
 		_ = Executor.execute(currentDirectory: path.path, arguments: command) { data in
 			guard var line = String(data: data, encoding: String.Encoding.utf8) else {
