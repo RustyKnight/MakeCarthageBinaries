@@ -28,6 +28,7 @@ public class Carthage {
 		}
 		var failed = false
 		var logs: String?
+		log("***".lightBlack, "runCarthage\n\t  in \(path.path)\n\twith \(command)".lightBlack)
 		_ = Executor.execute(currentDirectory: path.path, arguments: command) { data in
 			guard var line = String(data: data, encoding: String.Encoding.utf8) else {
 				log("***".red, "Error decoding data:")
