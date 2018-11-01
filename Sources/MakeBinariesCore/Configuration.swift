@@ -9,7 +9,7 @@ import Foundation
 import Utility
 
 public class Configuration {
-	public var isCurrentOnly = false
+	public var isCurrent = false
 	public var isDebug = false
 	public var skipBuildIfExists = false
 	public var xcode: Xcode
@@ -30,7 +30,7 @@ public class Configuration {
 		let arguments = Array(args.dropFirst())
 		let parser = ArgumentParser(usage: "{<options>}", overview: "Builds and archives Xcode projects with Carthage as Carthage Binary Releases")
 		let server = parser.add(option: "--server", kind: String.self, usage: "(Optional) The server URL to upload library archives to")
-		let currentOnly = parser.add(option: "--currentOnly", kind: Bool.self, usage: "(Optional) Build the current directory only (default scans a builds all sub directories)")
+		let current = parser.add(option: "--current", kind: Bool.self, usage: "(Optional) Build the current directory only (default scans a builds all sub directories)")
 		let skip = parser.add(option: "--skip", kind: Bool.self, usage: "(Optional) Skip building/archive if existing artifacts exist (default will delete them)")
 		let overrideVersion = parser.add(option: "--overrideVersion", kind: String.self, usage: "(Optional) Overrides the version of the library (default looks up the version from the GIT repo) - must be in {major}.{minor}.{patch} format")
 		let name = parser.add(option: "--name", kind: String.self, usage: "(Optional) Overrides the name of Carthage Binary Release (default will use the name of the directory)")
@@ -39,7 +39,7 @@ public class Configuration {
 		let parsedArguments = try parser.parse(arguments)
 		
 		config.server = parsedArguments.get(server) ?? nil
-		config.isCurrentOnly = parsedArguments.get(currentOnly) ?? false
+		config.isCurrent = parsedArguments.get(current) ?? false
 		config.skipBuildIfExists = parsedArguments.get(skip) ?? false
 		config.isDebug = parsedArguments.get(debugBuild) ?? false
 		config.overrideVersion = parsedArguments.get(overrideVersion) ?? nil

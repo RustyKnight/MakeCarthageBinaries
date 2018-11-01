@@ -61,8 +61,8 @@ public class Carthage {
 		}
 	}
 	
-	func buildDependencies() throws {
-		guard Folder.current.containsFile(named: "Cartfile") else {
+	func buildDependencies() throws {		
+		guard path.containsFile(named: "Cartfile") else {
 			log("***".lightBlack, "\(path.name)".bold.lightBlack, "does not contain carthage depedencies".lightBlack)
 			return
 		}

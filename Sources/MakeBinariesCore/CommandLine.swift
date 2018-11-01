@@ -18,8 +18,8 @@ public final class CommandLineTool {
 		timer.isRunning = true
 		
 		var archives: [File] = []
-		if config.isCurrentOnly {
-			archives = try buildCurrentOnly(configuration: config)
+		if config.isCurrent {
+			archives = try buildCurrent(configuration: config)
 		} else {
 			archives = try buildAll(configuration: config)
 		}
@@ -33,7 +33,7 @@ public final class CommandLineTool {
 		log("***".blue, "Took", "\(durationFormatter.string(from: timer.duration)!)".bold, "to build and install binraries")
 	}
 	
-	func buildCurrentOnly(configuration: Configuration) throws -> [File] {
+	func buildCurrent(configuration: Configuration) throws -> [File] {
 		log("***".blue, "Build current project only")
 		let path = Folder.current
 		let archive = try build(path: path, configuration: configuration)
