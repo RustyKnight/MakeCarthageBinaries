@@ -99,13 +99,18 @@ public class Builder {
 	}
 	
 	private func carthageArtifacts() throws -> [Folder] {
-		let matches = path.subfolders.filter { (folder) -> Bool in
-			guard folder.name.lowercased() == "carthage" else {
-				return false
-			}
-			return folder.containsSubfolder(named: "Build")
+		guard path.containsSubfolder(named: "Carthage/Build") else {
+			return []
 		}
-		return matches
+		return [try Folder(path: path.path + "Carthage/Build")]
+		
+//		let matches = path.subfolders.filter { (folder) -> Bool in
+//			guard folder.name.lowercased() == "carthage" else {
+//				return false
+//			}
+//			return folder.containsSubfolder(named: "Build")
+//		}
+//		return matches
 	}
 	
 	private func remove(_ files: [File]) throws {
