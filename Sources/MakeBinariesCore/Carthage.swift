@@ -69,14 +69,14 @@ public class Carthage {
 		}
 		
 		log("***".blue, "Build project", "\(path.name)".bold, "depedencies")
-		let command: [String] = ["carthage", "bootstrap", "--no-build"]
+		let command: [String] = ["carthage", "bootstrap"] //, "--no-build"]
 		
 		try runCarthage(arguments: command)
 	}
 	
 	func buildCurrent() throws {
 		log("***".blue, "Build project", "\(path.name)".bold)
-		var command: [String] = ["carthage", "build", "--no-skip-current"]
+		var command: [String] = ["carthage", "build", "--no-skip-current", "--no-simulators"]
 		if config.isDebug {
 			command.append("--configuration")
 			command.append("Debug")
