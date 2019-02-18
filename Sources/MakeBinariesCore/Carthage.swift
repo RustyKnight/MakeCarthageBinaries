@@ -69,7 +69,7 @@ public class Carthage {
 		}
 		
 		log("***".blue, "Build project", "\(path.name)".bold, "depedencies")
-		let command: [String] = ["carthage", "bootstrap"] //, "--no-build"]
+		let command: [String] = ["carthage", "bootstrap", "--no-build"] // They'll get built soon enough
 		
 		try runCarthage(arguments: command)
 	}
