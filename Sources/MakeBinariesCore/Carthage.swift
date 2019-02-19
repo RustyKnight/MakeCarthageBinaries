@@ -76,7 +76,10 @@ public class Carthage {
 	
 	func buildCurrent() throws {
 		log("***".blue, "Build project", "\(path.name)".bold)
-		var command: [String] = ["carthage", "build", "--no-skip-current", "--no-simulators"]
+		var command: [String] = ["carthage", "build", "--no-skip-current"]
+    if config.skipSimulators {
+      command.append("--skip-simulators")
+    }
 		if config.isDebug {
 			command.append("--configuration")
 			command.append("Debug")
