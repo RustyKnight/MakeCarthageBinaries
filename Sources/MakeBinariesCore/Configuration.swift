@@ -15,7 +15,7 @@ public class Configuration {
 	public var xcode: Xcode
 	public var overrideVersion: String? = nil
 	public var name: String? = nil
-  public var skipSimulators: Bool = false
+//  public var skipSimulators: Bool = false
 	
 	public var server: String? = nil
 	
@@ -36,7 +36,7 @@ public class Configuration {
 		let overrideVersion = parser.add(option: "--overrideVersion", kind: String.self, usage: "(Optional) Overrides the version of the library (default looks up the version from the GIT repo) - must be in {major}.{minor}.{patch} format")
 		let name = parser.add(option: "--name", kind: String.self, usage: "(Optional) Overrides the name of Carthage Binary Release (default will use the name of the directory)")
 		let debugBuild = parser.add(option: "--debugBuild", kind: Bool.self, usage: "(Optional) Build the project with the 'Debug' configuration")
-    let skipSims = parser.add(option: "--skipSimulators", kind: Bool.self, usage: "(Optional) Skip building targets with the simulator (where supported by target platform)")
+//    let skipSims = parser.add(option: "--skipSimulators", kind: Bool.self, usage: "(Optional) Skip building targets with the simulator (where supported by target platform)")
 
 		let parsedArguments = try parser.parse(arguments)
 		
@@ -46,7 +46,7 @@ public class Configuration {
 		config.isDebug = parsedArguments.get(debugBuild) ?? false
 		config.overrideVersion = parsedArguments.get(overrideVersion) ?? nil
 		config.name = parsedArguments.get(name) ?? nil
-    config.skipSimulators = parsedArguments.get(skipSims) ?? false
+//    config.skipSimulators = parsedArguments.get(skipSims) ?? false
 
 //		var overrideVersion = false
 //		var name = false
