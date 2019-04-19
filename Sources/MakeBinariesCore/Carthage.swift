@@ -9,6 +9,10 @@ import Foundation
 import Files
 
 public class Carthage {
+  
+  enum Error: Swift.Error {
+    case Testing
+  }
 	
 	private let path: Folder
 	private let config: Configuration
@@ -67,6 +71,8 @@ public class Carthage {
 			log("***".lightBlack, "\(path.name)".bold.lightBlack, "does not contain carthage depedencies".lightBlack)
 			return
 		}
+    
+    try updateCartFile()
 		
 		log("***".blue, "Build project", "\(path.name)".bold, "depedencies")
 		let command: [String] = ["carthage", "bootstrap", "--no-build"] // They'll get built soon enough
@@ -167,5 +173,63 @@ public class Carthage {
 //			}
 //		}
 	}
+  
+  func updateCartFile() throws {
+    guard let server = config.server else {
+      log("*** No server specified, skip updating Cartfile".lightBlack)
+      return
+    }
+    let cartFile = try path.file(atPath: "Cartfile")
+    let contents = try cartFile.readAsString(encoding: String.Encoding.utf8)
+    let lines = contents.split(separator: "\n").map { String($0) }
+
+    log("***".yellow, "\(config.xcode.version)")
+    log("***".yellow, "\(config.xcode.build)")
+    
+    let newBuild = "\(config.xcode.version)b\(config.xcode.build)"
+
+    var modified = false
+    var newLines: [String] = []
+    let binaryLead = "binary \""
+    for line in lines {
+      if line.hasPrefix("binary \"\(server)/json") {
+        guard !line.contains(newBuild) else { continue }
+        let startIndex = line.index(line.startIndex, offsetBy: binaryLead.count)
+        let endIndex = line.lastIndex(of: "\"")!
+        let sufix = String(line.suffix(from: line.index(endIndex, offsetBy: 1)))
+        let text = String(line[startIndex..<endIndex])
+        guard let url = URL(string: text) else {
+          log("***".yellow, "\(text) is not a valid URL")
+          continue
+        }
+        var path = url.pathComponents
+        guard path.count == 4 else {
+          log("***".yellow, "\(text) does not contain the current number of path elements".magenta)
+          continue
+        }
+        path[2] = newBuild
+        
+        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: true) else {
+          log("***".yellow, "Could not build components from URL".magenta)
+          continue
+        }
+        components.port = url.port
+        components.path = path.joined(separator: "/")
+        guard let newUrl = components.url else {
+          log("***".yellow, "Could not create new URL".magenta)
+          continue
+        }
+        let newText = newUrl.absoluteString.replacingOccurrences(of: "//json", with: "/json")
+        newLines.append("binary \"\(newText)\"\(sufix)")
+        modified = true
+      } else {
+        newLines.append(line)
+      }
+    }
+    
+    guard modified else { return }
+    log("***".magenta, "Update Cartfile with new build version", "\(newBuild)".bold)
+    try cartFile.write(string: String(newLines.joined(separator: "\n")), encoding: .utf8)
+  }
 	
 }
