@@ -12,7 +12,7 @@ let package = Package(
         ),
         .package(
             url: "https://github.com/apple/swift-package-manager.git",
-            from: "0.3.0"
+            .exact ("0.3.0")
         ),
     ],
     targets: [
