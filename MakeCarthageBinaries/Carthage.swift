@@ -33,7 +33,7 @@ public class Carthage {
 		var failed = false
 		var logs: String?
 		log("***".lightBlack, "runCarthage\n\t  in \(path.path)\n\twith \(command)".lightBlack)
-		_ = Executor.execute(currentDirectory: path.path, arguments: command) { data in
+		Executor.execute(currentDirectory: path.path, arguments: command) { data in
 			guard var line = String(data: data, encoding: String.Encoding.utf8) else {
 				log("***".red, "Error decoding data:")
 				log("\t\(data)".magenta)
@@ -134,7 +134,8 @@ public class Carthage {
 	func listFrameworks() throws -> [String] {
 		let buildFolder = try path.subfolder(named: "Carthage").subfolder(named: "Build")
 		var frameworks: Set<String> = Set()
-		buildFolder.makeSubfolderSequence(recursive: true).forEach { (file) in
+		
+		buildFolder.subfolders.recursive.forEach { file in
 			var name = file.name
 			guard let range = name.range(of: ".framework") else {
 				return
@@ -142,6 +143,9 @@ public class Carthage {
 			name = String(name[name.startIndex..<range.lowerBound])
 			frameworks.insert(name)
 		}
+		
+//		buildFolder.makeSubfolderSequence(recursive: true).forEach { (file) in
+//		}
 		
 		return frameworks.map { $0 }
 	}
@@ -179,8 +183,8 @@ public class Carthage {
       log("*** No server specified, skip updating Cartfile".lightBlack)
       return
     }
-    let cartFile = try path.file(atPath: "Cartfile")
-    let contents = try cartFile.readAsString(encoding: String.Encoding.utf8)
+    let cartFile = try path.file(at: "Cartfile")
+    let contents = try cartFile.readAsString(encodedAs: String.Encoding.utf8)
     let lines = contents.split(separator: "\n").map { String($0) }
 
     log("***".yellow, "\(config.xcode.version)")
@@ -229,7 +233,7 @@ public class Carthage {
     
     guard modified else { return }
     log("***".magenta, "Update Cartfile with new build version", "\(newBuild)".bold)
-    try cartFile.write(string: String(newLines.joined(separator: "\n")), encoding: .utf8)
+		try cartFile.write(String(newLines.joined(separator: "\n")), encoding: .utf8)
   }
 	
 }

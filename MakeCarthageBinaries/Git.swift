@@ -19,7 +19,7 @@ public class Git {
 		var versions: [SemanticVersion] = []
 //		git describe --tags
 		let command: [String] = ["git", "tag"]
-		_ = Executor.execute(currentDirectory: path.path, arguments: command) { data in
+		Executor.execute(currentDirectory: path.path, arguments: command) { data in
 			guard var line = String(data: data, encoding: String.Encoding.utf8) else {
 				log("***".red, "Error decoding data:")
 				log("\t\(data)".magenta)
