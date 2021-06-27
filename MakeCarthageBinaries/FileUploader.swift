@@ -41,7 +41,8 @@ class FileUploader: NSObject {
 			"name": libraryName,
 			"version": version.description,
 			"xcodeVersion": config.xcode.version,
-			"xcodeBuild": config.xcode.build
+			"xcodeBuild": config.xcode.build,
+			"tag": config.tag
 		]
 		
 		let boundary = "Boundary-\(UUID().uuidString)"

@@ -9,6 +9,8 @@ import Foundation
 import Files
 
 public class Carthage {
+	
+	fileprivate static let carthageCommand = "swncarthage"
   
   enum Error: Swift.Error {
     case Testing
@@ -75,55 +77,21 @@ public class Carthage {
     try updateCartFile()
 		
 		log("***".blue, "Build project", "\(path.name)".bold, "depedencies")
-		let command: [String] = ["carthage", "bootstrap", "--no-build"] // They'll get built soon enough
+		let command: [String] = [Carthage.carthageCommand, "bootstrap", "--no-build"] // They'll get built soon enough
 		
 		try runCarthage(arguments: command)
 	}
 	
 	func buildCurrent() throws {
 		log("***".blue, "Build project", "\(path.name)".bold)
-		var command: [String] = ["carthage", "build", "--no-skip-current"]
-//    if config.skipSimulators {
-//      command.append("--skip-simulators")
-//    }
-		if config.isDebug {
-			command.append("--configuration")
-			command.append("Debug")
+		var command: [String] = [Carthage.carthageCommand, "build", "--no-skip-current"]
+		if !config.noSkipSimulators {
+			command.append("--skip-simulators")
+		}
+		if config.useXcodeFrameworks {
+			command.append("--use-xcframeworks")
 		}
 		try runCarthage(arguments: command)
-//		var failed = false
-//		var logs: String?
-//		_ = Executor.execute(currentDirectory: path.path, arguments: command) { data in
-//			guard var line = String(data: data, encoding: String.Encoding.utf8) else {
-//				log("***".red, "Error decoding data:")
-//				log("\t\(data)".magenta)
-//				return
-//			}
-//
-//			line = line.trimmingCharacters(in: .whitespacesAndNewlines)
-//			guard line.count > 0 else {
-//				return
-//			}
-//
-//			let filtered = line.replacingOccurrences(of: "***", with: "").trimmingCharacters(in: .whitespaces)
-//
-//			if filtered.hasPrefix("Build Failed") || filtered.hasPrefix("Task failed") {
-//				failed = true
-//			}
-//			if filtered.hasPrefix("xcodebuild output can be found in") {
-//				logs = filtered.replacingOccurrences(of: "xcodebuild output can be found in", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
-//			}
-//			for part in line.split(separator: "\n") {
-//				log("[", part.trimmingCharacters(in: .whitespacesAndNewlines).lightBlack, "]")
-//			}
-//		}
-//		if failed {
-//			if let logs = logs {
-//				log("... Log files = \(logs)".lightBlack)
-//				Executor.execute(arguments: "/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl", logs)
-//			}
-//			throw "Failed to build project"
-//		}
 	}
 	
 	public func build() throws {
@@ -153,29 +121,12 @@ public class Carthage {
 	public func archive() throws {
 		log("***".blue, "Generate archive", "\(path.name)".bold)
 		
-		let arguments = ["carthage", "archive"]
-		
-		try runCarthage(arguments: arguments)
-		
-//		let names = try listFrameworks()
-//		log("... including \(names.joined(separator: ", "))".lightBlack)
-//		arguments.append(contentsOf: names)
+		var arguments = [Carthage.carthageCommand, "archive"]
+		if config.useXcodeFrameworks {
+			arguments.append("--use-xcframeworks")
+		}
 
-//		_ = Executor.execute(currentDirectory: path.path, arguments: arguments) { data in
-//			guard var line = String(data: data, encoding: String.Encoding.utf8) else {
-//				log("***".red, "Error decoding data:")
-//				log("\t\(data)".magenta)
-//				return
-//			}
-//
-//			line = line.trimmingCharacters(in: .whitespacesAndNewlines)
-//			guard line.count > 0 else {
-//				return
-//			}
-//			for part in line.split(separator: "\n") {
-//				log("[", part.trimmingCharacters(in: .whitespacesAndNewlines).lightBlack, "]")
-//			}
-//		}
+		try runCarthage(arguments: arguments)
 	}
   
   func updateCartFile() throws {

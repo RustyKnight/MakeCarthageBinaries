@@ -15,7 +15,9 @@ public class Configuration {
 	public var xcode: Xcode
 	public var overrideVersion: String? = nil
 	public var name: String? = nil
-//  public var skipSimulators: Bool = false
+  public var noSkipSimulators: Bool = false
+	public var useXcodeFrameworks: Bool = false
+	public var tag: String = "default"
 	
 	public var server: String? = nil
 	
@@ -36,7 +38,9 @@ public class Configuration {
 		let overrideVersion = parser.add(option: "--overrideVersion", kind: String.self, usage: "(Optional) Overrides the version of the library (default looks up the version from the GIT repo) - must be in {major}.{minor}.{patch} format")
 		let name = parser.add(option: "--name", kind: String.self, usage: "(Optional) Overrides the name of Carthage Binary Release (default will use the name of the directory)")
 		let debugBuild = parser.add(option: "--debugBuild", kind: Bool.self, usage: "(Optional) Build the project with the 'Debug' configuration")
-//    let skipSims = parser.add(option: "--skipSimulators", kind: Bool.self, usage: "(Optional) Skip building targets with the simulator (where supported by target platform)")
+    let noSkipSims = parser.add(option: "--noSkipSimulators", kind: Bool.self, usage: "(Optional) Don't skip building binaries for simulators (where supported by target platform), default will skip")
+		let useXcodeFrameworks = parser.add(option: "--useXcodeFrameworks", kind: Bool.self, usage: "(Optional) Use the newer Xcodeframe[S] structure (Xcode 12+) (default is to use the original format)")
+		let tag = parser.add(option: "--tag", kind: String.self, usage: "(Optional) Tag to be used when uploading the archive - allows for a level of customisation for each version of the archive (like suppporting different Xcode binary formats)")
 
 		let parsedArguments = try parser.parse(arguments)
 		
@@ -46,7 +50,9 @@ public class Configuration {
 		config.isDebug = parsedArguments.get(debugBuild) ?? false
 		config.overrideVersion = parsedArguments.get(overrideVersion) ?? nil
 		config.name = parsedArguments.get(name) ?? nil
-//    config.skipSimulators = parsedArguments.get(skipSims) ?? false
+    config.noSkipSimulators = parsedArguments.get(noSkipSims) ?? false
+		config.useXcodeFrameworks = parsedArguments.get(useXcodeFrameworks) ?? false
+		config.tag = parsedArguments.get(tag) ?? "default"
 
 //		var overrideVersion = false
 //		var name = false
