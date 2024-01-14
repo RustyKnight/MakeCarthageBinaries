@@ -9,182 +9,182 @@ import Foundation
 import Files
 
 public class Carthage {
-	
-	fileprivate static let carthageCommand = "swncarthage"
-  
-  enum Error: Swift.Error {
-    case Testing
-  }
-	
-	private let path: Folder
-	private let config: Configuration
-	
-	public init(path: Folder, configuration: Configuration) {
-		self.path = path
-		self.config = configuration
-	}
-	
-	func runCarthage(arguments: [String]) throws {
-		var command: [String] = []
-		command.append(contentsOf: arguments)
-		
-		if config.isDebug {
-			command.append("--configuration")
-			command.append("Debug")
-		}
-		var failed = false
-		var logs: String?
-		log("***".lightBlack, "runCarthage\n\t  in \(path.path)\n\twith \(command)".lightBlack)
-		Executor.execute(currentDirectory: path.path, arguments: command) { data in
-			guard var line = String(data: data, encoding: String.Encoding.utf8) else {
-				log("***".red, "Error decoding data:")
-				log("\t\(data)".magenta)
-				return
-			}
-			
-			line = line.trimmingCharacters(in: .whitespacesAndNewlines)
-			guard line.count > 0 else {
-				return
-			}
-			
-			let filtered = line.replacingOccurrences(of: "***", with: "").trimmingCharacters(in: .whitespaces)
-			
-			if filtered.hasPrefix("Build Failed") || filtered.hasPrefix("Task failed") {
-				failed = true
-			}
-			if filtered.hasPrefix("xcodebuild output can be found in") {
-				logs = filtered.replacingOccurrences(of: "xcodebuild output can be found in", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
-			}
-			for part in line.split(separator: "\n") {
-				log("[", part.trimmingCharacters(in: .whitespacesAndNewlines).lightBlack, "]")
-			}
-		}
-		if failed {
-			if let logs = logs {
-				log("... Log files = \(logs)".lightBlack)
-				Executor.execute(arguments: "/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl", logs)
-			}
-			throw "Failed to build project"
-		}
-	}
-	
-	func buildDependencies() throws {		
-		guard path.containsFile(named: "Cartfile") else {
-			log("***".lightBlack, "\(path.name)".bold.lightBlack, "does not contain carthage depedencies".lightBlack)
-			return
-		}
     
-    try updateCartFile()
-		
-		log("***".blue, "Build project", "\(path.name)".bold, "depedencies")
-		let command: [String] = [Carthage.carthageCommand, "bootstrap", "--no-build"] // They'll get built soon enough
-		
-		try runCarthage(arguments: command)
-	}
-	
-	func buildCurrent() throws {
-		log("***".blue, "Build project", "\(path.name)".bold)
-		var command: [String] = [Carthage.carthageCommand, "build", "--no-skip-current"]
-		if !config.noSkipSimulators {
-			command.append("--skip-simulators")
-		}
-		if config.useXcodeFrameworks {
-			command.append("--use-xcframeworks")
-		}
-		try runCarthage(arguments: command)
-	}
-	
-	public func build() throws {
-		try buildDependencies()
-		try buildCurrent()
-	}
-	
-	func listFrameworks() throws -> [String] {
-		let buildFolder = try path.subfolder(named: "Carthage").subfolder(named: "Build")
-		var frameworks: Set<String> = Set()
-		
-		buildFolder.subfolders.recursive.forEach { file in
-			var name = file.name
-			guard let range = name.range(of: ".framework") else {
-				return
-			}
-			name = String(name[name.startIndex..<range.lowerBound])
-			frameworks.insert(name)
-		}
-		
-//		buildFolder.makeSubfolderSequence(recursive: true).forEach { (file) in
-//		}
-		
-		return frameworks.map { $0 }
-	}
-	
-	public func archive() throws {
-		log("***".blue, "Generate archive", "\(path.name)".bold)
-		
-		var arguments = [Carthage.carthageCommand, "archive"]
-		if config.useXcodeFrameworks {
-			arguments.append("--use-xcframeworks")
-		}
-
-		try runCarthage(arguments: arguments)
-	}
-  
-  func updateCartFile() throws {
-    guard let server = config.server else {
-      log("*** No server specified, skip updating Cartfile".lightBlack)
-      return
+    fileprivate static let carthageCommand = "carthage"
+    
+    enum Error: Swift.Error {
+        case Testing
     }
-    let cartFile = try path.file(at: "Cartfile")
-    let contents = try cartFile.readAsString(encodedAs: String.Encoding.utf8)
-    let lines = contents.split(separator: "\n").map { String($0) }
-
-    log("***".yellow, "\(config.xcode.version)")
-    log("***".yellow, "\(config.xcode.build)")
     
-    let newBuild = "\(config.xcode.version)b\(config.xcode.build)"
-
-    var modified = false
-    var newLines: [String] = []
-    let binaryLead = "binary \""
-    for line in lines {
-      if line.hasPrefix("binary \"\(server)/json") {
-        guard !line.contains(newBuild) else { continue }
-        let startIndex = line.index(line.startIndex, offsetBy: binaryLead.count)
-        let endIndex = line.lastIndex(of: "\"")!
-        let sufix = String(line.suffix(from: line.index(endIndex, offsetBy: 1)))
-        let text = String(line[startIndex..<endIndex])
-        guard let url = URL(string: text) else {
-          log("***".yellow, "\(text) is not a valid URL")
-          continue
-        }
-        var path = url.pathComponents
-        guard path.count == 4 else {
-          log("***".yellow, "\(text) does not contain the current number of path elements".magenta)
-          continue
-        }
-        path[2] = newBuild
+    private let path: Folder
+    private let config: Configuration
+    
+    public init(path: Folder, configuration: Configuration) {
+        self.path = path
+        self.config = configuration
+    }
+    
+    func runCarthage(arguments: [String]) throws {
+        var command: [String] = []
+        command.append(contentsOf: arguments)
         
-        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: true) else {
-          log("***".yellow, "Could not build components from URL".magenta)
-          continue
+        if config.isDebug {
+            command.append("--configuration")
+            command.append("Debug")
         }
-        components.port = url.port
-        components.path = path.joined(separator: "/")
-        guard let newUrl = components.url else {
-          log("***".yellow, "Could not create new URL".magenta)
-          continue
+        var failed = false
+        var logs: String?
+        log("***".lightBlack, "runCarthage\n\t  in \(path.path)\n\twith \(command)".lightBlack)
+        Executor.execute(currentDirectory: path.path, arguments: command) { data in
+            guard var line = String(data: data, encoding: String.Encoding.utf8) else {
+                log("***".red, "Error decoding data:")
+                log("\t\(data)".magenta)
+                return
+            }
+            
+            line = line.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard line.count > 0 else {
+                return
+            }
+            
+            let filtered = line.replacingOccurrences(of: "***", with: "").trimmingCharacters(in: .whitespaces)
+            
+            if filtered.hasPrefix("Build Failed") || filtered.hasPrefix("Task failed") {
+                failed = true
+            }
+            if filtered.hasPrefix("xcodebuild output can be found in") {
+                logs = filtered.replacingOccurrences(of: "xcodebuild output can be found in", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            for part in line.split(separator: "\n") {
+                log("[", part.trimmingCharacters(in: .whitespacesAndNewlines).lightBlack, "]")
+            }
         }
-        let newText = newUrl.absoluteString.replacingOccurrences(of: "//json", with: "/json")
-        newLines.append("binary \"\(newText)\"\(sufix)")
-        modified = true
-      } else {
-        newLines.append(line)
-      }
+        if failed {
+            if let logs = logs {
+                log("... Log files = \(logs)".lightBlack)
+                Executor.execute(arguments: "/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl", logs)
+            }
+            throw "Failed to build project"
+        }
     }
     
-    guard modified else { return }
-    log("***".magenta, "Update Cartfile with new build version", "\(newBuild)".bold)
-		try cartFile.write(String(newLines.joined(separator: "\n")), encoding: .utf8)
-  }
-	
+    func buildDependencies() throws {
+        guard path.containsFile(named: "Cartfile") else {
+            log("***".lightBlack, "\(path.name)".bold.lightBlack, "does not contain carthage depedencies".lightBlack)
+            return
+        }
+        
+        try updateCartFile()
+        
+        log("***".blue, "Build project", "\(path.name)".bold, "depedencies")
+        let command: [String] = [Carthage.carthageCommand, "bootstrap", "--no-build"] // They'll get built soon enough
+        
+        try runCarthage(arguments: command)
+    }
+    
+    func buildCurrent() throws {
+        log("***".blue, "Build project", "\(path.name)".bold)
+        var command: [String] = [Carthage.carthageCommand, "build", "--no-skip-current"]
+        if !config.noSkipSimulators {
+            command.append("--skip-simulators")
+        }
+        if config.useXcodeFrameworks {
+            command.append("--use-xcframeworks")
+        }
+        try runCarthage(arguments: command)
+    }
+    
+    public func build() throws {
+        try buildDependencies()
+        try buildCurrent()
+    }
+    
+    func listFrameworks() throws -> [String] {
+        let buildFolder = try path.subfolder(named: "Carthage").subfolder(named: "Build")
+        var frameworks: Set<String> = Set()
+        
+        buildFolder.subfolders.recursive.forEach { file in
+            var name = file.name
+            guard let range = name.range(of: ".framework") else {
+                return
+            }
+            name = String(name[name.startIndex..<range.lowerBound])
+            frameworks.insert(name)
+        }
+        
+        //		buildFolder.makeSubfolderSequence(recursive: true).forEach { (file) in
+        //		}
+        
+        return frameworks.map { $0 }
+    }
+    
+    public func archive() throws {
+        log("***".blue, "Generate archive", "\(path.name)".bold)
+        
+        var arguments = [Carthage.carthageCommand, "archive"]
+        if config.useXcodeFrameworks {
+            arguments.append("--use-xcframeworks")
+        }
+        
+        try runCarthage(arguments: arguments)
+    }
+    
+    func updateCartFile() throws {
+        guard let server = config.server else {
+            log("*** No server specified, skip updating Cartfile".lightBlack)
+            return
+        }
+        let cartFile = try path.file(at: "Cartfile")
+        let contents = try cartFile.readAsString(encodedAs: String.Encoding.utf8)
+        let lines = contents.split(separator: "\n").map { String($0) }
+        
+        log("***".yellow, "\(config.xcode.version)")
+        log("***".yellow, "\(config.xcode.build)")
+        
+        let newBuild = "\(config.xcode.version)b\(config.xcode.build)"
+        
+        var modified = false
+        var newLines: [String] = []
+        let binaryLead = "binary \""
+        for line in lines {
+            if line.hasPrefix("binary \"\(server)/json") {
+                guard !line.contains(newBuild) else { continue }
+                let startIndex = line.index(line.startIndex, offsetBy: binaryLead.count)
+                let endIndex = line.lastIndex(of: "\"")!
+                let sufix = String(line.suffix(from: line.index(endIndex, offsetBy: 1)))
+                let text = String(line[startIndex..<endIndex])
+                guard let url = URL(string: text) else {
+                    log("***".yellow, "\(text) is not a valid URL")
+                    continue
+                }
+                var path = url.pathComponents
+                guard path.count == 4 else {
+                    log("***".yellow, "\(text) does not contain the current number of path elements".magenta)
+                    continue
+                }
+                path[2] = newBuild
+                
+                guard var components = URLComponents(url: url, resolvingAgainstBaseURL: true) else {
+                    log("***".yellow, "Could not build components from URL".magenta)
+                    continue
+                }
+                components.port = url.port
+                components.path = path.joined(separator: "/")
+                guard let newUrl = components.url else {
+                    log("***".yellow, "Could not create new URL".magenta)
+                    continue
+                }
+                let newText = newUrl.absoluteString.replacingOccurrences(of: "//json", with: "/json")
+                newLines.append("binary \"\(newText)\"\(sufix)")
+                modified = true
+            } else {
+                newLines.append(line)
+            }
+        }
+        
+        guard modified else { return }
+        log("***".magenta, "Update Cartfile with new build version", "\(newBuild)".bold)
+        try cartFile.write(String(newLines.joined(separator: "\n")), encoding: .utf8)
+    }
+    
 }

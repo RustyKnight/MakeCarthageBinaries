@@ -3,13 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		18B1FA6E2687EFC1007408F1 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18B1FA6D2687EFC1007408F1 /* main.swift */; };
 		18B1FA762687EFDD007408F1 /* Files in Frameworks */ = {isa = PBXBuildFile; productRef = 18B1FA752687EFDD007408F1 /* Files */; };
-		18B1FA792687F028007408F1 /* Utility in Frameworks */ = {isa = PBXBuildFile; productRef = 18B1FA782687F028007408F1 /* Utility */; };
 		18B1FA962687F065007408F1 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18B1FA7A2687F065007408F1 /* Logger.swift */; };
 		18B1FA972687F065007408F1 /* Executor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18B1FA7B2687F065007408F1 /* Executor.swift */; };
 		18B1FA982687F065007408F1 /* Git.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18B1FA7C2687F065007408F1 /* Git.swift */; };
@@ -87,7 +86,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				18B1FA762687EFDD007408F1 /* Files in Frameworks */,
-				18B1FA792687F028007408F1 /* Utility in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -178,7 +176,6 @@
 			name = MakeCarthageBinaries;
 			packageProductDependencies = (
 				18B1FA752687EFDD007408F1 /* Files */,
-				18B1FA782687F028007408F1 /* Utility */,
 			);
 			productName = MakeCarthageBinaries;
 			productReference = 18B1FA6A2687EFC1007408F1 /* MakeCarthageBinaries */;
@@ -190,8 +187,9 @@
 		18B1FA622687EFC1007408F1 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1250;
-				LastUpgradeCheck = 1250;
+				LastUpgradeCheck = 1520;
 				TargetAttributes = {
 					18B1FA692687EFC1007408F1 = {
 						CreatedOnToolsVersion = 12.5;
@@ -209,7 +207,7 @@
 			mainGroup = 18B1FA612687EFC1007408F1;
 			packageReferences = (
 				18B1FA742687EFDD007408F1 /* XCRemoteSwiftPackageReference "files" */,
-				18B1FA772687F028007408F1 /* XCRemoteSwiftPackageReference "swift-package-manager" */,
+				706160F52B538390005CD2A4 /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
 			);
 			productRefGroup = 18B1FA6B2687EFC1007408F1 /* Products */;
 			projectDirPath = "";
@@ -292,9 +290,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -353,9 +353,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -377,6 +379,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = YWXH886EY3;
 				ENABLE_HARDENED_RUNTIME = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -388,6 +391,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = YWXH886EY3;
 				ENABLE_HARDENED_RUNTIME = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -427,12 +431,12 @@
 				minimumVersion = 4.2.0;
 			};
 		};
-		18B1FA772687F028007408F1 /* XCRemoteSwiftPackageReference "swift-package-manager" */ = {
+		706160F52B538390005CD2A4 /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-package-manager.git";
+			repositoryURL = "https://github.com/apple/swift-argument-parser.git";
 			requirement = {
-				kind = exactVersion;
-				version = 0.3.0;
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.3.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -442,11 +446,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 18B1FA742687EFDD007408F1 /* XCRemoteSwiftPackageReference "files" */;
 			productName = Files;
-		};
-		18B1FA782687F028007408F1 /* Utility */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 18B1FA772687F028007408F1 /* XCRemoteSwiftPackageReference "swift-package-manager" */;
-			productName = Utility;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

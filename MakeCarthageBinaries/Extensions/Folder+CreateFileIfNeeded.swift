@@ -9,17 +9,17 @@ import Foundation
 import Files
 
 extension Folder {
-	
-	@discardableResult public func createFileIfNeeded(withName fileName: String, contents: String, encoding: String.Encoding) throws -> File {
-		if let existingFile = try? file(named: fileName) {
-			return existingFile
-		}
-		
-		guard let data = contents.data(using: encoding) else {
-			throw "Failed to encode file contents"
-		}
-
-		return try createFile(named: fileName, contents: data)
-	}
-
+    
+    @discardableResult public func createFileIfNeeded(withName fileName: String, contents: String, encoding: String.Encoding) throws -> File {
+        if let existingFile = try? file(named: fileName) {
+            return existingFile
+        }
+        
+        guard let data = contents.data(using: encoding) else {
+            throw "Failed to encode file contents"
+        }
+        
+        return try createFile(named: fileName, contents: data)
+    }
+    
 }
